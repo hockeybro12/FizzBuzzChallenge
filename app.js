@@ -84,7 +84,7 @@ app.post('/fizzbuzz', function(req, res) {
   res.end(twiml.toString());
 });
 
-static scheduleCall(url, phoneNumber) {
+function scheduleCall(url, phoneNumber) {
   client.calls.create({
     url: url,
     to: phoneNumber.toString(),
@@ -98,19 +98,16 @@ static scheduleCall(url, phoneNumber) {
 app.get('/form', function(req, res) {
   var phoneNumber = req.query.name;
   var url = req.query.url;
+  var time = req.query.time;
 
   var fullUrl = "http://b2989291.ngrok.io";
 //  var realUrl = "http://b2989291.ngrok.io/voice";
-  console.log(url);
-/*
-  client.calls.create({
-    url: url,
-    to: phoneNumber.toString(),
-    from: "16692543016"
-  }, function(err, call) {
-    console.log(err);
-  });
-  */
+
+  if (time) {
+    setInterval(scheduleCall, time * 1000, url, phoneNumber);
+  } else {
+    scheduleCall(url, phoneNumber);
+  }
 
   res.send('You sent the phone number "' + req.query.name + '".');
 });
