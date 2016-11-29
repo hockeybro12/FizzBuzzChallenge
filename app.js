@@ -61,13 +61,14 @@ app.post('/fizzbuzz', function(req, res) {
     twiml.say(digitsString);
     twiml.say("Here is the fizzbuzz string for that number:");
     for (var i = 1; i <= req.body.Digits; i++) {
-      console.log(i % 3);
-      console.log(i % 5);
+      //if it divides 3 and 5 say fizzbuzz
       if ((i % 3 == 0) && (i % 5 == 0)) {
         twiml.say('Fizzbuzz');
       } else if (i % 5 == 0) {
+        //if divides 5 say buzz
         twiml.say('buzz');
       } else if (i % 3 == 0) {
+        //if divides 3 say fizz
         twiml.say('Fizz');
       } else {
         var numString = i.toString();
@@ -96,15 +97,13 @@ function scheduleCall(url, phoneNumber) {
 }
 
 app.get('/form', function(req, res) {
+  //since it is a get request get the url, etc. from the query string.
   var phoneNumber = req.query.name;
   var url = req.query.url;
   var time = req.query.time;
 
-  var fullUrl = "http://b2989291.ngrok.io";
-//  var realUrl = "http://b2989291.ngrok.io/voice";
-
   if (time) {
-    setInterval(scheduleCall, time * 1000, url, phoneNumber);
+    setTimeout(scheduleCall, time * 1000, url, phoneNumber);
   } else {
     scheduleCall(url, phoneNumber);
   }
