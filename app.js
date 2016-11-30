@@ -15,7 +15,7 @@ var fs = require('fs');
 var formidable = require("formidable");
 
 var accountSid = 'AC7eac04ec9af1ffd6f1293cede570c8c0';
-var token = '5deb2358a0a589261f79c6fbd2dd1b8a';
+var token = process.env.TWILIO_AUTH_TOKEN
 var client = twilio(accountSid, token);
 
 var mysql = require("mysql");
@@ -49,14 +49,7 @@ app.get('/', function(req, res) {
 });
 
 //rout that services our fizzbuzz application
-app.post('/voice', function(req, res) {
-  var header = req.headers['x-twilio-signature'];
-
-  /*
-  if (twilio.validateRequest(token, header, 'http://twilio-raw.herokuapp.com', POST)) {
-
-  } */
-
+app.post('/voice', twilio.webhook(), function(req, res) {
   var twiml = new twilio.TwimlResponse();
 
   twiml.say("Enter a number and then press *");
@@ -74,7 +67,7 @@ app.post('/voice', function(req, res) {
 });
 
 //the actual fizzbuzz application and database insertion
-app.post('/fizzbuzz', function(req, res) {
+app.post('/fizzbuzz', twilio.webhook(), function(req, res) {
   var twiml = new twilio.TwimlResponse();
 
   if (req.body.Digits) {

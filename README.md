@@ -4,6 +4,8 @@ This application is written in node.js. First do `npm install` so you get all th
 
 The application will crash if you do not set the database password correctly for MYSQL.
 
+First set your TWILIO_AUTH_TOKEN as an environment variable like so `export TWILIO_AUTH_TOKEN=`. Also, change the accountSid variable to your accountSid. 
+
 To run this application, first link port 1337 on your computer to ngrok by running `ngrok http 1337`. Then, in your twilio account, go to the phone number and put in the ngrok url there under the field `A Call Comes In` at webhook, and append /voice to it. So, for example it could be `http://b2989291.ngrok.io/voice`. 
 
 Then, if you run the application with `node app.js` and call your number, you should start fizzbuzz and hear instructions on how to run it.
