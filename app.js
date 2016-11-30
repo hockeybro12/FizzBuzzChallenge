@@ -18,15 +18,37 @@ var accountSid = 'AC7eac04ec9af1ffd6f1293cede570c8c0';
 var token = '5deb2358a0a589261f79c6fbd2dd1b8a';
 var client = twilio(accountSid, token);
 
+var mysql = require("mysql");
+
+//this must be set to the appropriate password and root for it to work. also install the database that was provided.
+var con = mysql = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "hackillinois",
+  database: "LendUpChallenge"
+});
+
+//connect to database
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting');
+    return;
+  }
+  console.log('Connected');
+})
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+//global variable for delay to store in database
+var delay = 0;
+
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname + '/index.html'));
 });
 
+//rout that services our fizzbuzz application
 app.post('/voice', function(req, res) {
   var header = req.headers['x-twilio-signature'];
 
@@ -51,9 +73,9 @@ app.post('/voice', function(req, res) {
   res.end(twiml.toString());
 });
 
+//the actual fizzbuzz application and database insertion
 app.post('/fizzbuzz', function(req, res) {
   var twiml = new twilio.TwimlResponse();
-
 
   if (req.body.Digits) {
     var digitsString = req.body.Digits.toString();
@@ -75,6 +97,16 @@ app.post('/fizzbuzz', function(req, res) {
         twiml.say(numString);
       }
     }
+
+    //create the dictionary and insert to the database we are connected to.
+    var fizzBuzzInformationArray = {delay : delay, number : req.body.Digits, timeMade : Date.now()};
+    con.query('INSERT INTO FizzBuzzInformation SET ?', fizzBuzzInformationArray, function(err, res) {
+      if (err) {
+        console.log("Problem");
+        throw err;
+      }
+    });
+    delay = 0;
   } else {
     twiml.say("Couldn't find a number.");
   }
@@ -85,11 +117,13 @@ app.post('/fizzbuzz', function(req, res) {
   res.end(twiml.toString());
 });
 
-function scheduleCall(url, phoneNumber) {
+function scheduleCall(url, phoneNumber, fromNumber) {
+
+  //this phone number should be set to our number.
   client.calls.create({
     url: url,
     to: phoneNumber.toString(),
-    from: "16692543016"
+    from: fromNumber
   }, function(err, call) {
     console.log(err);
   });
@@ -101,11 +135,13 @@ app.get('/form', function(req, res) {
   var phoneNumber = req.query.name;
   var url = req.query.url;
   var time = req.query.time;
+  var fromNumber = req.query.fromNumber;
 
   if (time) {
-    setTimeout(scheduleCall, time * 1000, url, phoneNumber);
+    delay = time;
+    setTimeout(scheduleCall, time * 1000, url, phoneNumber, fromNumber);
   } else {
-    scheduleCall(url, phoneNumber);
+    scheduleCall(url, phoneNumber, fromNumber);
   }
 
   res.send('You sent the phone number "' + req.query.name + '".');
@@ -131,6 +167,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+/*
+con.end(function(err) {
+
+});
+*/
 
 
 app.listen(port);
